@@ -6,14 +6,16 @@ final class RaspberryPiInfo: SQLiteModel {
     var name: String
     var internalIP: String
     var temp: String
-    var externalIP: String?
-    var updatedAt: Date?
+    var externalIP: String
+    var updatedAt: Date
 
-    init(id: Int? = nil, name: String, internalIP: String, temp: String) {
+    init(id: Int?, name: String, internalIP: String, temp: String, externalIP: String, updatedAt: Date) {
         self.id = id
         self.name = name
         self.internalIP = internalIP
         self.temp = temp
+        self.externalIP = externalIP
+        self.updatedAt = updatedAt
     }
 }
 
