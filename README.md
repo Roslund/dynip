@@ -2,28 +2,51 @@
 A super simple API to keep track of raspberry pis
 
 
-### Coresponding script
+## Scripts
+`updateIP.sh`
 ```bash
-!/bin/bash
+#!/bin/bash
+
+SERVER=http://dynip.vapor.cloud/pis/
 
 temp=$(/opt/vc/bin/vcgencmd measure_temp | cut -d '=' -f 2)
 ipaddress=$(ifconfig wlan0 | grep -Eo 'inet ([0-9]*\.){3}[0-9]*' | cut -d ' ' -f 2)
 
-
-echo "Temp: $temp"
-echo "localip: $ipaddress"
-
-curl --data "id=5&name=timelaps&temp=$temp&internalIP=$ipaddress" http://IP:Port/pis/
+curl --data "id=2&name=timelapse&temperature=$temp&internalIP=$ipaddress" $SERVER
 ```
 
-### Script for taking images and sending to ftp server
-
+`capturetimelapse.sh`
 ```bash
 #!/bin/bash
 
-DATE=$(date +"%Y-%m-%d_%H%M")
-raspistill -o /home/pi/timelapse/images/$DATE.jpg
+DATE=$(date +"%Y-%m-%d")
+DATETIME=$(date +"%Y-%m-%d_%H%M")
+raspistill -w 1920 -h 1080 -o /home/pi/timelapse/images/$DATETIME.jpg
 
+gpio write 24 1 # Give LED indication while uploading
 cd '/home/pi/timelapse/images'
-wput --remove-source-files ./* ftp://IP/timelapse/testing/
+wput -t 2 --remove-source-files ./* ftp://IP/PATH/$DATE/
+gpio write 24 0
 ```
+
+ `checkInternet.sh` Script for cheking internet access
+```bash
+#!/bin/bash
+
+gpio mode 23 out
+gpio mode 24 out
+gpio mode 25 out
+
+wget -q --spider http://google.com
+
+if [ $? -eq 0 ]; then
+    echo "Online"
+    gpio write 23 1
+    gpio write 25 0
+else
+    echo "Offline"
+    gpio write 23 0
+    gpio write 25 1
+fi
+```
+
